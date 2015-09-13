@@ -1,7 +1,6 @@
 '''
 Created on Sep 12, 2015
 
-# just trying to change something
 @author: ananta
 '''
 
