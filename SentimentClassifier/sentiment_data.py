@@ -14,9 +14,9 @@ import numpy
 
 class SimpleTimer(object):
 
-    def __init__(self, txt, file=None):
+    def __init__(self, txt, outFile=None):
         self.text = txt or ''
-        self.outFile = file
+        self.outFile = outFile
 
     def __enter__(self):
         self.start = time.time()
@@ -58,12 +58,12 @@ class TwitterData(object):
             return self.shuffleData(self.test[:n_sample])
             
     def shuffleData(self, res):
-            shuffle(res)
-            train = Bunch()
-            train.data = map(lambda x:x[1], res)
-            train.target = map(lambda x:x[0], res)
-            train.target_names = self.names
-            return train
+        shuffle(res)
+        train = Bunch()
+        train.data = map(lambda x:x[1], res)
+        train.target = map(lambda x:x[0], res)
+        train.target_names = self.names
+        return train
 
 def getTwitterData(size=10, ratio=0.2):
 #     filePath = 'C:\\Users\\ananta\\Documents\\6220\\Sentiment-Analysis-Dataset\\TwitterSentiment.txt'
@@ -104,7 +104,7 @@ def getTfidfData(dataTrain, dataTest):
     if feature_names:
         feature_names = numpy.asarray(feature_names)
         print 'important features'
-        print feature_names.shuffle()[:10]
+        print feature_names[:10]
     return X_tfidf, Y_tfidf
     
     
@@ -114,6 +114,7 @@ if __name__ == '__main__':
 #     print TwitterData(filePath).fetchData('train',10)
     dataTrain, dataTest = getTwitterData(100)
 #     pprint(dataTrain.data)
-    getTfidfData(dataTrain, dataTest)
+    train, test = getTfidfData(dataTrain, dataTest)
+    print type(train)
     
     
