@@ -56,7 +56,6 @@ def runKNNSimulation(dataTrain, dataTest, train_tfidf, test_tfidf):
     print train_scores
     print valid_scores
     '''
-#     plot_learning_curve(KNeighborsClassifier(n_neighbors=25, weights='uniform', algorithm='kd_tree'), 'knn', X_tfidf, dataTrain.target, cv=5, n_jobs=4)
        
 #     plot_learning_curve(bestClf, 'knn with %d neighbors' % bestNeighbors, train_tfidf, dataTrain.target, cv=5, n_jobs=4)
     

@@ -5,13 +5,17 @@ Created on Sep 12, 2015
 '''
 from sentiment_data import getTwitterData, getTfidfData, SimpleTimer
 from pybrain.datasets import ClassificationDataSet
-from pybrain.structure.modules   import SoftmaxLayer, TanhLayer, SigmoidLayer
+from pybrain.structure.modules   import SoftmaxLayer, TanhLayer, SigmoidLayer, LinearLayer
 from pybrain.tools.shortcuts     import buildNetwork
 from pybrain.supervised.trainers import BackpropTrainer
 from pybrain.utilities           import percentError
 
+
+from pybrain.structure import RecurrentNetwork, FullConnection
+
+
 def getDataSetFromTfidf(tfidf, target):
-    ds = ClassificationDataSet(test_tfidf.shape[1], nb_classes=2, class_labels=['Negative','Positive'])
+    ds = ClassificationDataSet(tfidf.shape[1], nb_classes=2, class_labels=['Negative','Positive'])
     for i in range(tfidf.shape[0]):
         ds.addSample(tfidf[i].toarray()[0], [target[i]])
     ds._convertToOneOfMany()
@@ -31,11 +35,23 @@ def runNeuralSimulation(dataTrain, dataTest, train_tfidf, test_tfidf):
     print "First sample (input, target, class):"
     print len(trainDS['input'][0]), trainDS['target'][0], trainDS['class'][0]
     
-    with SimpleTimer('time to train', outFile):
-        net = buildNetwork(trainDS.indim, trainDS.indim/2, trainDS.indim/4, trainDS.indim/8, trainDS.indim/16, 2, hiddenclass=TanhLayer, outclass=SoftmaxLayer)
-        trainer = BackpropTrainer( net, dataset=trainDS, momentum=0.1, verbose=True, weightdecay=0.01, batchlearning=True)
+#     with SimpleTimer('time to train', outFile):
+#         net = buildNetwork(trainDS.indim, trainDS.indim/2, trainDS.indim/4, trainDS.indim/8, trainDS.indim/16, 2, hiddenclass=TanhLayer, outclass=SoftmaxLayer)
+#         trainer = BackpropTrainer( net, dataset=trainDS, momentum=0.1, verbose=True, weightdecay=0.01, batchlearning=True)
+    net = RecurrentNetwork()
+    net.addInputModule(LinearLayer(trainDS.indim, name='in'))
+    net.addModule(SigmoidLayer(trainDS.indim/2, name='hidden'))
+    net.addModule(SigmoidLayer(trainDS.indim/4, name='hidden2'))
+    net.addOutputModule(SoftmaxLayer(2, name='out'))
+    net.addConnection(FullConnection(net['in'], net['hidden'], name='c1'))
+    net.addConnection(FullConnection(net['hidden'], net['out'], name='c2'))
+    net.addRecurrentConnection(FullConnection(net['hidden'], net['hidden'], name='c3'))
+    net.addRecurrentConnection(FullConnection(net['hidden2'], net['hidden'], name='c4'))
+    net.sortModules()
+    trainer = BackpropTrainer( net, dataset=trainDS, momentum=0.01, verbose=True, weightdecay=0.01)
+    
     outFile.write('%s \n' % (net.__str__()))
-    epochs = 200
+    epochs = 2000
     with SimpleTimer('time to train %d epochs' % epochs, outFile):
         for i in range(epochs):
             trainer.trainEpochs(1)

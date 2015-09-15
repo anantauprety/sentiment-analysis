@@ -4,11 +4,6 @@ Created on Sep 12, 2015
 @author: ananta
 '''
 
-'''
-Created on Sep 2, 2015
-
-@author: ananta
-'''
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn import cross_validation

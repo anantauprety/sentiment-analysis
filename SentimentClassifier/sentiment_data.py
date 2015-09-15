@@ -115,6 +115,6 @@ if __name__ == '__main__':
     dataTrain, dataTest = getTwitterData(100)
 #     pprint(dataTrain.data)
     train, test = getTfidfData(dataTrain, dataTest)
-    print type(train)
+    print type(dataTrain.target)
     
     
