@@ -9,8 +9,6 @@ from pybrain.structure.modules   import SoftmaxLayer, TanhLayer, SigmoidLayer, L
 from pybrain.tools.shortcuts     import buildNetwork
 from pybrain.supervised.trainers import BackpropTrainer
 from pybrain.utilities           import percentError
-
-
 from pybrain.structure import RecurrentNetwork, FullConnection
 
 

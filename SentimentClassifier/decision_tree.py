@@ -12,7 +12,7 @@ from sklearn import metrics
 from sklearn.linear_model import SGDClassifier
 from sklearn.metrics import confusion_matrix
 import logging
-from sentiment_data import getTwitterData, getTfidfData, SimpleTimer
+from sentiment_data import getTwitterData, getTfidfData, SimpleTimer, getPickeledData, outputScores
 from sklearn import tree
 from sklearn.learning_curve import learning_curve
 from sklearn.metrics import accuracy_score
@@ -28,7 +28,7 @@ def printPdf(clf, dataTrain):
     graph.write_pdf('sentiment.pdf')
     print dataTrain.data[0]
 
-def runDecisionTreeSimulation(dataTrain, dataTest, train_tfidf, test_tfidf):
+def runDecisionTreeSimulation(dataTrain, dataTest, dataHold, train_tfidf, test_tfidf, hold_tfidf):
     print 'running decision tree'
     outFile = open('decisionTreeLog.txt','a')
 
@@ -41,28 +41,36 @@ def runDecisionTreeSimulation(dataTrain, dataTest, train_tfidf, test_tfidf):
     initHeight = clf.tree_.max_depth
     print 'baseline score %.3f base height %d' % (baseScore, initHeight)
     outFile.write('baseline score %.3f base height %d \n' % (baseScore, initHeight))
+    
+    
     res = []
     with SimpleTimer('time to prune', outFile):
-        for height in range(initHeight, initHeight / 2, -10):
+        for height in range(initHeight, 40, -25):
 #             print 'training for height %d' % height
             clf = DecisionTreeClassifier(max_depth=height).fit(train_tfidf, dataTrain.target)
-            score = clf.score(test_tfidf, dataTest.target)
+            score = clf.score(hold_tfidf, dataHold.target)
             res.append((score, height))
             outFile.write('%d %.3f \n' % (height, score))
     res = sorted(res, key=lambda x:x[0], reverse=True)
     print res[:5]
-    '''
-    train_sizes, train_scores, valid_scores = learning_curve(DecisionTreeClassifier(), train_tfidf, dataTrain.target, train_sizes=[50, 80, 110], cv=5)
-    print train_sizes
-    print train_scores
-    print valid_scores
-    '''
+    
     bestDepth = res[0][1]
     print ('best height is %d' % bestDepth)
-    outFile.write('best depth is %d  and score is %d \n' % (bestDepth, res[0][0]))
+    outFile.write('best depth is %d  and score is %.3f \n' % (bestDepth, res[0][0]))
+        
     bestClf = DecisionTreeClassifier(max_depth=bestDepth)
     bestClf.fit(train_tfidf, dataTrain.target)
+    
     predicted = bestClf.predict(test_tfidf)
+    
+    train_predict = bestClf.predict(train_tfidf)
+    
+    print 'testing score'
+    outFile.write('testing score')
+    outputScores(dataTest.target, predicted, outFile)
+    print 'training score'
+    outFile.write('testing score')
+    outputScores(dataTrain.target, train_predict, outFile)
     
     results = predicted == dataTest.target
     wrong = []
@@ -77,6 +85,7 @@ def runDecisionTreeSimulation(dataTrain, dataTest, train_tfidf, test_tfidf):
     
 if __name__ == '__main__':
     dataSize = 10000
-    dataTrain, dataTest = getTwitterData(size=dataSize)
-    train_tfidf, test_tfidf = getTfidfData(dataTrain, dataTest)
-    runDecisionTreeSimulation(dataTrain, dataTest, train_tfidf, test_tfidf)
+#     dataTrain, dataTest = getTwitterData(size=dataSize)
+#     train_tfidf, test_tfidf = getTfidfData(dataTrain, dataTest)
+    dataTrain, dataTest, holdOut, train_tfidf, test_tfidf, hold_tfidf = getPickeledData()
+    runDecisionTreeSimulation(dataTrain, dataTest, holdOut, train_tfidf, test_tfidf, hold_tfidf)
